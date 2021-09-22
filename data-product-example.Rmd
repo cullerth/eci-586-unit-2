@@ -1,0 +1,56 @@
+---
+title: "Course Grades & Time Spent"
+author: "Dr. Shaun Kellogg"
+date: "9/17/2021"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+
+data_to_viz <- read_csv("data/data-to-explore.csv")
+
+data_to_viz  %>% 
+  select(subject, 
+         section, 
+         time_spent_hours, 
+         proportion_earned) %>%
+  mutate(subject = recode(subject, 
+                          "AnPhA" = "Anatomy",
+                          "BioA" = "Biology", 
+                          "FrScA" = "Forensics", 
+                          "OcnA" =  "Oceanography", 
+                          "PhysA" = "Physics")) %>%
+  mutate(grade = proportion_earned * 100) %>%
+  ggplot() +
+  geom_point(mapping = aes(x = time_spent_hours, 
+                       y = grade,
+                       color = subject),
+             alpha = .25) +
+  geom_smooth(mapping = aes(x = time_spent_hours, 
+                            y = grade,
+                            color = subject,
+                            weight = .5),
+              method = loess,
+              se = FALSE) +
+  ylim(0, 100) + 
+  xlim(0, 90) +
+  facet_wrap(~subject, ncol = 3) +
+  labs(title = "Will spending more time in an online course land me a better grade?",
+       y = "% of Total Points",
+       x = "Hours Logged into Online Course",
+       subtitle = "Spoiler Alert... Yes, to an extent.",
+       caption = "Fine print: Time spent online does not necessarly account for all time students spent on the course, e.g, studying offline.") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  scale_color_brewer(palette = "Set1",
+                     name = "Course Subject")
+```
+
+In the scatter plot above, each point indicates the amount of time a student spent and their percentage of total points earned on assignments, which here is used as a close approximation of their final grade. For each of five online STEM courses offered by the statewide virtual public school from which this data was collected, there is a positive relationship between the amount of time students spent and their course grade, as indicated by the smoothing line for each scatter plot. However, there also appears to be diminishing returns of course grade after roughly 25\~30 hours, where invested time does not necessarily correspond to higher course grades.
